@@ -6,14 +6,15 @@
     <title>Document</title>
 </head>
 <body>
-    <form onsubmit="handleSubmit(event)">
+    <form onsubmit="validLogin(event)">
         <label for="email">Email :</label>
         <input type="email" name="email" id="email" required placeholder="Type Email Here ...">
         <label for="password">Password :</label>
         <input type="password" name="password" id="password" required placeholder="*****">
         <button type="submit">Submit</button>
         </form>
-        <a href="./login.html">Existing User - Login Here ..</a>
+        <a href="./index.html">Not An Existing User SignUp Here ..</a>
+        <div id="error"></div>
         <script src="main.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     
