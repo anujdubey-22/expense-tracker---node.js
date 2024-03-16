@@ -15,13 +15,13 @@ async function handleSubmit(event) {
     if (data.status === 201) {
       console.log(201);
       window.location.href = "./login.html";
-    } else {
-      const div = document.getElementById("error");
-
-      div.innerHTML = `<div style="color: red;"><h3>ERROR HERE ...${data.data}</h3> </div>`;
     }
   } catch (error) {
     console.log(error, "error in post request in main.js");
+    const div = document.getElementById("error");
+
+    div.innerHTML = `<div style="color: red;"><h3>ERROR HERE ...404  ${error.response.data}</h3> </div>`;
+    console.log(error.response.data);
   }
 }
 
@@ -36,17 +36,16 @@ async function validLogin(event) {
       password: password,
     };
     const data = await axios.post("http://localhost:3000/user/validate", obj);
-    if (data.status != 201) {
-        console.log(data.data);
-      const div = document.getElementById("error");
-      div.innerHTML = `<div style="color: red;"><h3>ERROR HERE ...${data.data}</h3> </div>`;
-    }
-    else{
-        const div = document.getElementById("error");
-      div.innerHTML =''
+    console.log(data)
+    if (data.status=== 201) {
       console.log(data.data);
+      alert('User Login Success')
     }
   } catch (error) {
     console.log(error, "error in validating user");
+    const div = document.getElementById("error");
+    div.innerHTML = "";
+      div.innerHTML = `<div style="color: red;"><h3>ERROR HERE ...404 ${error.response.data}</h3> </div>`;
+    console.log(error.response.data);
   }
 }
