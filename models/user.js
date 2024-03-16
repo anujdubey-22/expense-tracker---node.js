@@ -1,25 +1,26 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../database");
 
-const Expense = sequelize.define("expense", {
+const User = sequelize.define("user", {
   id: {
     type: Sequelize.INTEGER,
     allowNull: false,
     primaryKey: true,
     autoIncrement: true,
   },
-  expenseAmount: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
-  description: {
+  name: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  category: {
+  email: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  password: {
     type: Sequelize.STRING,
     allowNull: false,
   },
 });
 
-module.exports = Expense;
+module.exports = User;
