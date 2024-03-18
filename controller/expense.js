@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Expense = require("../models/expense");
+const jwt = require('jsonwebtoken');
 
 const saltRounds = 10;
 
@@ -40,7 +41,11 @@ exports.postUser = async (req, res, next) => {
     res.status(404).send("Duplicate Email Found");
   }
 };
-
+function generateToken(id){
+  console.log(id,'id in generateToken')
+  var token = jwt.sign({ userId: id }, 'shhhhh fir koi hai');
+  return token;
+}
 exports.postValidate = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -58,8 +63,9 @@ exports.postValidate = async (req, res, next) => {
       const hash = data.password;
       const match = bcrypt.compareSync(password, hash);
       console.log(match);
+      //console.log(email,data.email)
       if (match && email === data.email) {
-        res.status(201).json("User Login Successfully");
+        res.status(201).json({ message: "User Login Successfully", data: data ,token:generateToken(data.id)});
       } else {
         res.status(401).json("password does not match");
       }
@@ -72,9 +78,12 @@ exports.postValidate = async (req, res, next) => {
 exports.postExpense = async (req, res, next) => {
   try {
     console.log(req.body);
-    const { amount, description, category } = req.body;
+    const { amount, description, category,token } = req.body;
+    const user = jwt.verify(token, 'shhhhh fir koi hai');
+    console.log(user,'user, hihihihhi')
     //console.log(amount,description, category);
     const data = await Expense.create({
+      userId : user.userId,
       expenseAmount: amount,
       description: description,
       category: category,
@@ -88,7 +97,9 @@ exports.postExpense = async (req, res, next) => {
 
 exports.getExpense = async (req, res, next) => {
   try {
-    const data = await Expense.findAll();
+    const user = req.user;
+    console.log(user,'user');
+    const data = await Expense.findAll({where: {userId:user.userId}});
     //console.log(data,'data in finding All in app.js');
     res.status(201).json({ response: data });
   } catch (error) {
@@ -98,9 +109,10 @@ exports.getExpense = async (req, res, next) => {
 
 exports.deleteExpense = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    console.log(id);
-    const response = await Expense.destroy({ where: { id: id } });
+    const token = req.params.token;
+    const user = jwt.verify(token, 'shhhhh fir koi hai');
+    console.log(user);
+    const response = await Expense.destroy({ where: { userId: user.userId } });
     res.status(201).json({ response });
   } catch (error) {
     console.log(error, "error in deleting expense in app.js");

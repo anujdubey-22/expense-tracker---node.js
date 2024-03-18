@@ -1,6 +1,7 @@
 async function getData() {
   try {
-    const response = await axios.get("http://localhost:3000/user/get-expense");
+    var token = localStorage.getItem('token');
+    const response = await axios.get("http://localhost:3000/user/get-expense",{headers:{"authorization":token}});
     console.log(response);
     for (let data of response.data.response) {
       //console.log(data);
@@ -31,7 +32,7 @@ function showExpense(expenseData) {
   li.appendChild(btn);
   //li.appendChild(edit);
   list.appendChild(li);
-  console.log(li);
+  //console.log(li);
 
   // var objString=JSON.stringify(obj);
 
@@ -41,6 +42,7 @@ function showExpense(expenseData) {
 
   async function clicked(e) {
     try {
+      var token = localStorage.getItem('token');
       console.log("hi", e.target, id);
       var li = e.target.parentElement;
       list.removeChild(li);
@@ -48,7 +50,7 @@ function showExpense(expenseData) {
       //localStorage.removeItem(obj.description);
 
       const response = await axios.delete(
-        `http://localhost:3000/user/delete-expense/${id}`
+        `http://localhost:3000/user/delete-expense/${token}`
       );
       console.log(response);
     } catch (error) {
@@ -121,8 +123,9 @@ async function validLogin(event) {
     console.log(data);
     if (data.status === 201) {
       console.log(data.data);
+      localStorage.setItem('token',data.data.token);
       alert("User Login Success");
-      window.location.href = "./expense.html";
+       window.location.href = "./expense.html";
     }
   } catch (error) {
     console.log(error, "error in validating user");
@@ -139,13 +142,16 @@ async function expenseHandler(event) {
   var amount = document.getElementById("Expenseamount").value;
   var description = document.getElementById("Description").value;
   var category = document.getElementById("Category").value;
+  var token = localStorage.getItem('token');
   console.log(amount, description, category);
+  console.log(token);
 
   axios
     .post("http://localhost:3000/user/post-expense", {
       amount: amount,
       description: description,
       category: category,
+      token:token
     })
     .then((result) => {
       console.log(result, "result in axios post in main.js");
