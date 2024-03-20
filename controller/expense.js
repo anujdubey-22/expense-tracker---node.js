@@ -43,9 +43,9 @@ exports.postUser = async (req, res, next) => {
     res.status(404).send("Duplicate Email Found");
   }
 };
-function generateToken(id) {
+function generateToken(id,isPremium) {
   console.log(id, "id in generateToken");
-  var token = jwt.sign({ userId: id }, "shhhhh fir koi hai");
+  var token = jwt.sign({ userId: id, isPremium}, "shhhhh fir koi hai");
   return token;
 }
 exports.postValidate = async (req, res, next) => {
@@ -70,7 +70,7 @@ exports.postValidate = async (req, res, next) => {
         res.status(201).json({
           message: "User Login Successfully",
           data: data,
-          token: generateToken(data.id),
+          token: generateToken(data.id,data.isPremium),
         });
       } else {
         res.status(401).json("password does not match");
@@ -172,7 +172,7 @@ exports.postUpdatetransactions = async (req, res, next) => {
     const order = await Order.findOne({ where: { orderId: order_id } });
     console.log(order, "order in postUpdatetransaction");
     const orderUpdate = await order.update({ paymentId: payment_id });
-    const response = User.update(
+    const response = await User.update(
       { isPremium: true },
       {
         where: {
@@ -180,6 +180,9 @@ exports.postUpdatetransactions = async (req, res, next) => {
         },
       }
     );
+    const user = await User.findOne({where:{id:req.user.userId}});
+    //console.log(user.id,user.isPremium,'user id and isPremium in postUpdatetransactions in Controllerline 183');
+    const token = generateToken(user.id,user.isPremium)
     //const response = req.user.update({ isPremium: true });
 
     // Concurrently await all promises using Promise.all
@@ -187,7 +190,7 @@ exports.postUpdatetransactions = async (req, res, next) => {
 
     return res
       .status(201)
-      .json({ success: true, message: "Transaction successfull" });
+      .json({ success: true, message: "Transaction successfull",token:token });
   } catch (error) {
     console.log(error, "error in post updatetransaction in controller.js");
   }

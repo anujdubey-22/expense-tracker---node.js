@@ -19,17 +19,15 @@
             <option value="movie">movie</option>
             <option value="bill">bill</option>
         </select>
-        <input type="submit" value="add expense">
-        <button id="board" style="display: none;">Show Leader Borad</button>
+        <button type="submit">add expense</button>
+        <div id="message"></div>
     </form>
+    <button type="button" id="board" style="display: none;" onclick="showLeaderBoard()">Show Leader Borad</button>
     <button id="buyPremium" type="submit" onclick="buyPremium()">buy Premium</button>
     <h2>Expenses</h2>
     <ul id="list">
-
     </ul>
-    <h2>Leaderboard</h2>
     <ul id="leaderboard">
-
     </ul>
     <script src="main.js"> </script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>

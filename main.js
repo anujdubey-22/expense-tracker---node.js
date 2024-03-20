@@ -17,6 +17,8 @@ async function getData() {
     if (localStorage.getItem("buttonHidden") === "true") {
       document.getElementById("buyPremium").style.display = "none";
       document.getElementById("board").style.display = "block";
+        let pElement = document.getElementById("message");
+     pElement.innerHTML = "You are a Premium User now";
     }
     for (let data of response.data.response) {
       //console.log(data);
@@ -31,6 +33,20 @@ document.addEventListener("DOMContentLoaded", getData);
 
 async function showLeaderBoard() {
   console.log("show Leader btn clicked");
+  const token = localStorage.getItem('token');
+  const userArr = await axios.get('http://localhost:3000/premium/showLeaderBoard',{headers:{authorization: token}});
+  console.log(userArr);
+  const leaderEle = document.getElementById('leaderboard');
+  leaderEle.innerHTML= `<h1>Leader Board</h1>`
+  for(let item of userArr.data.data){
+    //console.log(`Name - ${item} Total Expense - ${userArr[item]}`)
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.Total_Expense}` ))
+    //leaderEle.innerHTML += `Name - ${item} Total Expense - ${userArr.data.data[item]}`;
+    leaderEle.appendChild(div)
+
+  }
+  
 }
 async function buyPremium() {
   try {
@@ -60,6 +76,7 @@ async function buyPremium() {
         );
         console.log(output);
         alert("you are premium user now");
+        localStorage.setItem("token", output.data.token);
         document.getElementById("buyPremium").style.display = "none";
         document.getElementById("board").style.display = "block";
         document
@@ -67,6 +84,8 @@ async function buyPremium() {
           .addEventListener("click", showLeaderBoard());
         // Store hidden state in local storage
         localStorage.setItem("buttonHidden", "true");
+        let pElement = document.getElementById("message");
+    pElement.innerHTML = "You are a Premium User now";
       },
     };
     const rzp1 = new Razorpay(options);

@@ -5,6 +5,7 @@ const User = require('./models/user');
 const Expense = require("./models/expense");
 const Order = require('./models/order');
 const Router = require('./routes/expense');
+const premiumRoutes = require('./routes/premium');
 const sequelize = require('./database');
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(bodyParser.json({ extended: true }));
 
 app.use("/user",Router);
+app.use("/premium",premiumRoutes);
 
 
 User.hasMany(Expense);
