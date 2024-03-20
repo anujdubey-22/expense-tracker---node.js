@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Expense = require("../models/expense");
-const jwt = require('jsonwebtoken');
+const Order = require("../models/order");
+const jwt = require("jsonwebtoken");
+const Razorpay = require("razorpay");
 
 const saltRounds = 10;
 
@@ -41,9 +43,9 @@ exports.postUser = async (req, res, next) => {
     res.status(404).send("Duplicate Email Found");
   }
 };
-function generateToken(id){
-  console.log(id,'id in generateToken')
-  var token = jwt.sign({ userId: id }, 'shhhhh fir koi hai');
+function generateToken(id) {
+  console.log(id, "id in generateToken");
+  var token = jwt.sign({ userId: id }, "shhhhh fir koi hai");
   return token;
 }
 exports.postValidate = async (req, res, next) => {
@@ -65,7 +67,11 @@ exports.postValidate = async (req, res, next) => {
       console.log(match);
       //console.log(email,data.email)
       if (match && email === data.email) {
-        res.status(201).json({ message: "User Login Successfully", data: data ,token:generateToken(data.id)});
+        res.status(201).json({
+          message: "User Login Successfully",
+          data: data,
+          token: generateToken(data.id),
+        });
       } else {
         res.status(401).json("password does not match");
       }
@@ -78,12 +84,12 @@ exports.postValidate = async (req, res, next) => {
 exports.postExpense = async (req, res, next) => {
   try {
     console.log(req.body);
-    const { amount, description, category,token } = req.body;
-    const user = jwt.verify(token, 'shhhhh fir koi hai');
-    console.log(user,'user, hihihihhi')
+    const { amount, description, category, token } = req.body;
+    const user = jwt.verify(token, "shhhhh fir koi hai");
+    console.log(user, "user, hihihihhi");
     //console.log(amount,description, category);
     const data = await Expense.create({
-      userId : user.userId,
+      userId: user.userId,
       expenseAmount: amount,
       description: description,
       category: category,
@@ -98,8 +104,8 @@ exports.postExpense = async (req, res, next) => {
 exports.getExpense = async (req, res, next) => {
   try {
     const user = req.user;
-    console.log(user,'user');
-    const data = await Expense.findAll({where: {userId:user.userId}});
+    console.log(user, "user");
+    const data = await Expense.findAll({ where: { userId: user.userId } });
     //console.log(data,'data in finding All in app.js');
     res.status(201).json({ response: data });
   } catch (error) {
@@ -110,11 +116,98 @@ exports.getExpense = async (req, res, next) => {
 exports.deleteExpense = async (req, res, next) => {
   try {
     const token = req.params.token;
-    const user = jwt.verify(token, 'shhhhh fir koi hai');
+    const user = jwt.verify(token, "shhhhh fir koi hai");
     console.log(user);
     const response = await Expense.destroy({ where: { userId: user.userId } });
     res.status(201).json({ response });
   } catch (error) {
     console.log(error, "error in deleting expense in app.js");
+  }
+};
+
+exports.postPremium = async (req, res, next) => {
+  try {
+    const user = req.user;
+    var rzp = new Razorpay({
+      key_id: "rzp_test_6KrOEQFklAiYbK",
+      key_secret: "ofUbMJlJE1cYh0RgtRjbefsR",
+    });
+
+    rzp.orders.create(
+      {
+        amount: 5000,
+        currency: "INR",
+      },
+      (error, order) => {
+        if (error) {
+          console.log(error, "error in postpremium");
+          throw new Error(JSON.stringify(error));
+        }
+        console.log(order,'order in postPremium in controller.js');
+        Order.create({
+          userId: req.user.userId,
+          orderId: order.id,
+          status: "PENDING",
+        })
+          // req.user
+          //   .createOrder({ orderId: order.id, })
+          .then(() => {
+            return res.status(201).json({ order, key_id: rzp.key_id });
+          })
+          .catch((error) => {
+            throw new Error(err);
+          });
+      }
+    );
+  } catch (error) {
+    console.log(error, "error in postPremium in controller");
+  }
+};
+
+exports.postUpdatetransactions = async (req, res, next) => {
+  try {
+    console.log(req.user, "req.user in postUpdatetransaction in controller.js");
+    const { order_id, payment_id } = req.body;
+    console.log(order_id, payment_id,'order and paymentId in postUpdatetransactions in controller.js')
+    const order = await Order.findOne({ where: { orderId: order_id } });
+    console.log(order, "order in postUpdatetransaction");
+    const orderUpdate = await order.update({ paymentId: payment_id });
+    const response = User.update(
+      { isPremium: true },
+      {
+        where: {
+          id: req.user.userId,
+        },
+      }
+    );
+    //const response = req.user.update({ isPremium: true });
+
+    // Concurrently await all promises using Promise.all
+    await Promise.all([orderUpdate, response]);
+
+    return res
+      .status(201)
+      .json({ success: true, message: "Transaction successfull" });
+  } catch (error) {
+    console.log(error, "error in post updatetransaction in controller.js");
+  }
+};
+
+exports.postFailedTransaction = async (req, res, next) => {
+  try {
+    const { order_id, payment_id } = req.body;
+    console.log(order_id,payment_id,'orderId and paymentid in failedTransaction in controller')
+    await Order.update(
+      { status: "Failed",paymentId: payment_id},
+      {
+        where: {
+          userId: req.user.userId,
+          orderId: order_id,
+        },
+      }
+    );
+    res.status(400).json({message:'Failed transaction'});
+  } catch (error) {
+    console.log(error, "error in poastFailedTransaction in controller");
   }
 };

@@ -1,8 +1,15 @@
 async function getData() {
   try {
-    var token = localStorage.getItem('token');
-    const response = await axios.get("http://localhost:3000/user/get-expense",{headers:{"authorization":token}});
+    var token = localStorage.getItem("token");
+    const response = await axios.get("http://localhost:3000/user/get-expense", {
+      headers: { authorization: token },
+    });
     console.log(response);
+
+    // Check if button was hidden before
+    if (localStorage.getItem("buttonHidden") === "true") {
+      document.getElementById("buyPremium").style.display = "none";
+    }
     for (let data of response.data.response) {
       //console.log(data);
       showExpense(data);
@@ -13,6 +20,60 @@ async function getData() {
 }
 
 document.addEventListener("DOMContentLoaded", getData);
+
+async function buyPremium() {
+  try {
+    console.log("btn clicked");
+    obj = {};
+    const token = localStorage.getItem("token");
+    console.log(token, "token to send in post premium in main.js");
+    const response = await axios.post(
+      "http://localhost:3000/user/premium",
+      obj,
+      { headers: { authorization: token } }
+    );
+    console.log(response);
+    console.log(response.razorpay_payment_id, "paymentId");
+
+    var options = {
+      key: response.data.key_id,
+      order_id: response.data.order.id,
+      handler: async function (response) {
+        const output = await axios.post(
+          "http://localhost:3000/user/updatetransactions",
+          {
+            order_id: options.order_id,
+            payment_id: response.razorpay_payment_id,
+          },
+          { headers: { authorization: token } }
+        );
+        console.log(output);
+        alert("you are premium user now");
+        document.getElementById("buyPremium").style.display = "none";
+        // Store hidden state in local storage
+        localStorage.setItem("buttonHidden", "true");
+      },
+    };
+    const rzp1 = new Razorpay(options);
+    rzp1.open();
+    //e.preventDefault();
+
+    rzp1.on("payment.failed", async function (response) {
+      console.log(response, "response in buyPremium in main.js");
+      const failed = await axios.post(
+        "http://localhost:3000/user/failedTransaction",
+        {
+          order_id: response.error.metadata.order_id,
+          payment_id: response.error.metadata.payment_id,
+        },
+        { headers: { authorization: token } }
+      );
+      alert("Somethimg went Wrong");
+    });
+  } catch (error) {
+    console.log(error, "error in buy premium");
+  }
+}
 
 function showExpense(expenseData) {
   const { expenseAmount, description, category, id } = expenseData;
@@ -42,7 +103,7 @@ function showExpense(expenseData) {
 
   async function clicked(e) {
     try {
-      var token = localStorage.getItem('token');
+      var token = localStorage.getItem("token");
       console.log("hi", e.target, id);
       var li = e.target.parentElement;
       list.removeChild(li);
@@ -123,9 +184,9 @@ async function validLogin(event) {
     console.log(data);
     if (data.status === 201) {
       console.log(data.data);
-      localStorage.setItem('token',data.data.token);
+      localStorage.setItem("token", data.data.token);
       alert("User Login Success");
-       window.location.href = "./expense.html";
+      window.location.href = "./expense.html";
     }
   } catch (error) {
     console.log(error, "error in validating user");
@@ -142,7 +203,7 @@ async function expenseHandler(event) {
   var amount = document.getElementById("Expenseamount").value;
   var description = document.getElementById("Description").value;
   var category = document.getElementById("Category").value;
-  var token = localStorage.getItem('token');
+  var token = localStorage.getItem("token");
   console.log(amount, description, category);
   console.log(token);
 
@@ -151,7 +212,7 @@ async function expenseHandler(event) {
       amount: amount,
       description: description,
       category: category,
-      token:token
+      token: token,
     })
     .then((result) => {
       console.log(result, "result in axios post in main.js");

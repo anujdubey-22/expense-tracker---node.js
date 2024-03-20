@@ -13,6 +13,12 @@ router.post('/validate',controller.postValidate);
 
 router.post('/post-expense',controller.postExpense);
 
+router.post('/premium', verifyToken, controller.postPremium);
+
+router.post('/updatetransactions',verifyToken,controller.postUpdatetransactions);
+
+router.post('/failedTransaction', verifyToken, controller.postFailedTransaction);
+
 router.delete('/delete-expense/:token',controller.deleteExpense);
 
 

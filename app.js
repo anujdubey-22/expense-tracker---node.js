@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const User = require('./models/user');
 const Expense = require("./models/expense");
+const Order = require('./models/order');
 const Router = require('./routes/expense');
 const sequelize = require('./database');
 
@@ -16,10 +17,13 @@ app.use("/user",Router);
 User.hasMany(Expense);
 Expense.belongsTo(User);
 
+User.hasMany(Order);
+Order.belongsTo(User);
+
 async function sync() {
   try {
     const data = await sequelize.sync();
-    console.log(data);
+    //console.log(data);
     app.listen(3000, () => {
       console.log("server started on Port 3000");
     });
