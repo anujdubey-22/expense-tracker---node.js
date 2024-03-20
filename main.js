@@ -6,9 +6,17 @@ async function getData() {
     });
     console.log(response);
 
+    //let pElement = document.getElementById("message").querySelector("p");
+    //let pElement = document.createElement("p");
+    // pElement.innerHTML = "Hello, World!";
+    // document.getElementById("message").appendChild(pElement);
+
+    //document.getElementById("message").appendChild(pElement);
+
     // Check if button was hidden before
     if (localStorage.getItem("buttonHidden") === "true") {
       document.getElementById("buyPremium").style.display = "none";
+      document.getElementById("board").style.display = "block";
     }
     for (let data of response.data.response) {
       //console.log(data);
@@ -21,6 +29,9 @@ async function getData() {
 
 document.addEventListener("DOMContentLoaded", getData);
 
+async function showLeaderBoard() {
+  console.log("show Leader btn clicked");
+}
 async function buyPremium() {
   try {
     console.log("btn clicked");
@@ -50,6 +61,10 @@ async function buyPremium() {
         console.log(output);
         alert("you are premium user now");
         document.getElementById("buyPremium").style.display = "none";
+        document.getElementById("board").style.display = "block";
+        document
+          .getElementById("board")
+          .addEventListener("click", showLeaderBoard());
         // Store hidden state in local storage
         localStorage.setItem("buttonHidden", "true");
       },
