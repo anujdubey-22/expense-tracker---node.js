@@ -39,9 +39,10 @@ async function showLeaderBoard() {
   const leaderEle = document.getElementById('leaderboard');
   leaderEle.innerHTML= `<h1>Leader Board</h1>`
   for(let item of userArr.data.data){
-    //console.log(`Name - ${item} Total Expense - ${userArr[item]}`)
+    //console.log(item.name,item.expenseAmount)
+    //console.log(`Name - ${item.name} Total Expense - ${item.expenseAmount}`)
     const div = document.createElement('div');
-    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.Total_Expense}` ))
+    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.expenseAmount!=null?item.expenseAmount:0}` ))
     //leaderEle.innerHTML += `Name - ${item} Total Expense - ${userArr.data.data[item]}`;
     leaderEle.appendChild(div)
 
