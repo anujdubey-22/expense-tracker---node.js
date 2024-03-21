@@ -4,6 +4,7 @@ const Expense = require("../models/expense");
 const Order = require("../models/order");
 const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
+const sequelize = require("../database");
 
 const saltRounds = 10;
 
@@ -43,9 +44,9 @@ exports.postUser = async (req, res, next) => {
     res.status(404).send("Duplicate Email Found");
   }
 };
-function generateToken(id,isPremium) {
+function generateToken(id, isPremium,expenseId) {
   console.log(id, "id in generateToken");
-  var token = jwt.sign({ userId: id, isPremium}, "shhhhh fir koi hai");
+  var token = jwt.sign({ userId: id, isPremium, expenseId:expenseId }, "shhhhh fir koi hai");
   return token;
 }
 exports.postValidate = async (req, res, next) => {
@@ -70,7 +71,7 @@ exports.postValidate = async (req, res, next) => {
         res.status(201).json({
           message: "User Login Successfully",
           data: data,
-          token: generateToken(data.id,data.isPremium),
+          token: generateToken(data.id, data.isPremium),
         });
       } else {
         res.status(401).json("password does not match");
@@ -83,26 +84,31 @@ exports.postValidate = async (req, res, next) => {
 
 exports.postExpense = async (req, res, next) => {
   try {
-    console.log(req.body);
-    const { amount, description, category, token } = req.body;
-    const user = jwt.verify(token, "shhhhh fir koi hai");
-    console.log(user, "user, hihihihhi");
-    //console.log(amount,description, category);
-    const data = await Expense.create({
-      userId: user.userId,
-      expenseAmount: amount,
-      description: description,
-      category: category,
-    });
-
-    // Update the total amount in the User record
-  const userFound = await User.findByPk(user.userId)
-    userFound.totalAmount += parseInt(amount);
-    await userFound.save();
-  
-
-    //console.log(data,'data after creating expense table in app.js');
-    res.status(201).json({ newExpenseDetail: data });
+    await sequelize.transaction(async () => {
+      console.log(req.body);
+      const { amount, description, category, token } = req.body;
+      const user = jwt.verify(token, "shhhhh fir koi hai");
+      console.log(user, "user, hihihihhi");
+      //console.log(amount,description, category);
+      const data = await Expense.create(
+        {
+          userId: user.userId,
+          expenseAmount: amount,
+          description: description,
+          category: category,
+        }
+      );
+      console.log(data,'data after creating expense table in app.js');
+      // Update the total amount in the User record
+      const userFound = await User.findByPk(user.userId);
+      userFound.totalAmount += parseInt(amount);
+      await userFound.save();
+      
+      newToken = generateToken(user.userId,userFound.isPremium,data.dataValues.id);
+      console.log(data.dataValues.id,'iddddddddddddddddd',newToken,'newtokennnnnnnnnnnnnnn')
+      
+      res.status(201).json({ newExpenseDetail: data,token:newToken });
+    })
   } catch (err) {
     console.log(err, "error in creating Expense");
   }
@@ -122,11 +128,17 @@ exports.getExpense = async (req, res, next) => {
 
 exports.deleteExpense = async (req, res, next) => {
   try {
-    const token = req.params.token;
+    await sequelize.transaction( async () => {
+      const token = req.params.token;
     const user = jwt.verify(token, "shhhhh fir koi hai");
     console.log(user);
-    const response = await Expense.destroy({ where: { userId: user.userId } });
+    console.log(user.expenseId,'user.expenseIddddddddddddddddddd')
+    const expense = await Expense.findByPk(user.expenseId);
+    const response = await Expense.destroy({ where: { id: user.expenseId } });
+    const userFound = await User.findByPk(user.userId);
+    userFound.totalAmount -= expense.expenseAmount;
     res.status(201).json({ response });
+    })
   } catch (error) {
     console.log(error, "error in deleting expense in app.js");
   }
@@ -136,8 +148,8 @@ exports.postPremium = async (req, res, next) => {
   try {
     const user = req.user;
     var rzp = new Razorpay({
-      key_id: "rzp_test_h1vK6YHOKYrDtK",
-      key_secret: "XulgxO4lF4jlEwj4KIJrif2k",
+      key_id: "rzp_test_2nRLHGamGL8Jjk",
+      key_secret: "HQp1EwLeRDZ5ik6LV5fYg28G",
     });
 
     rzp.orders.create(
@@ -150,7 +162,7 @@ exports.postPremium = async (req, res, next) => {
           console.log(error, "error in postpremium");
           throw new Error(JSON.stringify(error));
         }
-        console.log(order,'order in postPremium in controller.js');
+        console.log(order, "order in postPremium in controller.js");
         Order.create({
           userId: req.user.userId,
           orderId: order.id,
@@ -175,7 +187,11 @@ exports.postUpdatetransactions = async (req, res, next) => {
   try {
     console.log(req.user, "req.user in postUpdatetransaction in controller.js");
     const { order_id, payment_id } = req.body;
-    console.log(order_id, payment_id,'order and paymentId in postUpdatetransactions in controller.js')
+    console.log(
+      order_id,
+      payment_id,
+      "order and paymentId in postUpdatetransactions in controller.js"
+    );
     const order = await Order.findOne({ where: { orderId: order_id } });
     console.log(order, "order in postUpdatetransaction");
     const orderUpdate = await order.update({ paymentId: payment_id });
@@ -187,9 +203,9 @@ exports.postUpdatetransactions = async (req, res, next) => {
         },
       }
     );
-    const user = await User.findOne({where:{id:req.user.userId}});
+    const user = await User.findOne({ where: { id: req.user.userId } });
     //console.log(user.id,user.isPremium,'user id and isPremium in postUpdatetransactions in Controllerline 183');
-    const token = generateToken(user.id,user.isPremium)
+    const token = generateToken(user.id, user.isPremium);
     //const response = req.user.update({ isPremium: true });
 
     // Concurrently await all promises using Promise.all
@@ -197,7 +213,11 @@ exports.postUpdatetransactions = async (req, res, next) => {
 
     return res
       .status(201)
-      .json({ success: true, message: "Transaction successfull",token:token });
+      .json({
+        success: true,
+        message: "Transaction successfull",
+        token: token,
+      });
   } catch (error) {
     console.log(error, "error in post updatetransaction in controller.js");
   }
@@ -206,9 +226,13 @@ exports.postUpdatetransactions = async (req, res, next) => {
 exports.postFailedTransaction = async (req, res, next) => {
   try {
     const { order_id, payment_id } = req.body;
-    console.log(order_id,payment_id,'orderId and paymentid in failedTransaction in controller')
+    console.log(
+      order_id,
+      payment_id,
+      "orderId and paymentid in failedTransaction in controller"
+    );
     await Order.update(
-      { status: "Failed",paymentId: payment_id},
+      { status: "Failed", paymentId: payment_id },
       {
         where: {
           userId: req.user.userId,
@@ -216,7 +240,7 @@ exports.postFailedTransaction = async (req, res, next) => {
         },
       }
     );
-    res.status(400).json({message:'Failed transaction'});
+    res.status(400).json({ message: "Failed transaction" });
   } catch (error) {
     console.log(error, "error in poastFailedTransaction in controller");
   }

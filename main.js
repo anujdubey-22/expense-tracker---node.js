@@ -251,6 +251,9 @@ async function expenseHandler(event) {
     })
     .then((result) => {
       console.log(result, "result in axios post in main.js");
+      const newToken = result.data.token
+      console.log(newToken,'newtokennnnnnn');
+      localStorage.setItem('token',newToken);
       showExpense(result.data.newExpenseDetail);
     })
     .catch((error) => console.log(error, "error in axios post in main.js"));
