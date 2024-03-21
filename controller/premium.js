@@ -7,17 +7,10 @@ exports.getshowLeaderBoard = async (req, res, next) => {
   try {
     console.log("in premium controller");
     const users = await User.findAll({
-      attributes:['id','name',[sequelize.fn('sum',sequelize.col('expenseAmount')) , 'expenseAmount']],
-      include:[
-        {
-          model:Expense,
-          attributes:[]
-        }
-      ],
-      group:['user.id'],
-      order:[['expenseAmount','DESC']]
+      attributes:['name','totalAmount'],
+      order:[['totalAmount','DESC']]
     });
-    
+    //console.log(users)
     res.status(201).json({data:users});
   } catch (error) {
     console.log(error, "error in getshowLeaderBoard controller");

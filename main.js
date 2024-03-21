@@ -42,7 +42,7 @@ async function showLeaderBoard() {
     //console.log(item.name,item.expenseAmount)
     //console.log(`Name - ${item.name} Total Expense - ${item.expenseAmount}`)
     const div = document.createElement('div');
-    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.expenseAmount!=null?item.expenseAmount:0}` ))
+    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.totalAmount!=null?item.totalAmount:0}` ))
     //leaderEle.innerHTML += `Name - ${item} Total Expense - ${userArr.data.data[item]}`;
     leaderEle.appendChild(div)
 
@@ -241,7 +241,7 @@ async function expenseHandler(event) {
   var token = localStorage.getItem("token");
   console.log(amount, description, category);
   console.log(token);
-
+  
   axios
     .post("http://localhost:3000/user/post-expense", {
       amount: amount,

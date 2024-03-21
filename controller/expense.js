@@ -94,6 +94,13 @@ exports.postExpense = async (req, res, next) => {
       description: description,
       category: category,
     });
+
+    // Update the total amount in the User record
+  const userFound = await User.findByPk(user.userId)
+    userFound.totalAmount += parseInt(amount);
+    await userFound.save();
+  
+
     //console.log(data,'data after creating expense table in app.js');
     res.status(201).json({ newExpenseDetail: data });
   } catch (err) {
@@ -129,8 +136,8 @@ exports.postPremium = async (req, res, next) => {
   try {
     const user = req.user;
     var rzp = new Razorpay({
-      key_id: "rzp_test_6KrOEQFklAiYbK",
-      key_secret: "ofUbMJlJE1cYh0RgtRjbefsR",
+      key_id: "rzp_test_h1vK6YHOKYrDtK",
+      key_secret: "XulgxO4lF4jlEwj4KIJrif2k",
     });
 
     rzp.orders.create(
