@@ -31,6 +31,11 @@ async function getData() {
 
 document.addEventListener("DOMContentLoaded", getData);
 
+async function forgotPasswordHandler(){
+//console.log('click')
+window.location.href = './forgot.html'
+};
+
 async function showLeaderBoard() {
   console.log("show Leader btn clicked");
   const token = localStorage.getItem('token');
