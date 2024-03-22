@@ -4,8 +4,9 @@ const cors = require("cors");
 const User = require('./models/user');
 const Expense = require("./models/expense");
 const Order = require('./models/order');
+const Forgotpassword = require('./models/forgotpassword');
 const Router = require('./routes/expense');
-const forgotrouter = require('./routes/forgot');
+const forgotrouter = require('./routes/forgotpassword');
 const premiumRoutes = require('./routes/premium');
 const sequelize = require('./database');
 
@@ -23,6 +24,9 @@ Expense.belongsTo(User);
 
 User.hasMany(Order);
 Order.belongsTo(User);
+
+User.hasMany(Forgotpassword);
+Forgotpassword.belongsTo(User);
 
 async function sync() {
   try {

@@ -18,7 +18,7 @@ router.post('/updatetransactions',verifyToken,controller.postUpdatetransactions)
 
 router.post('/failedTransaction', verifyToken, controller.postFailedTransaction);
 
-router.delete('/delete-expense/:token',controller.deleteExpense);
+router.delete('/delete-expense/:id',controller.deleteExpense);
 
 
 module.exports = router;

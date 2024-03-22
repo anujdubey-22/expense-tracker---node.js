@@ -143,7 +143,6 @@ function showExpense(expenseData) {
 
   async function clicked(e) {
     try {
-      var token = localStorage.getItem("token");
       console.log("hi", e.target, id);
       var li = e.target.parentElement;
       list.removeChild(li);
@@ -151,7 +150,7 @@ function showExpense(expenseData) {
       //localStorage.removeItem(obj.description);
 
       const response = await axios.delete(
-        `http://localhost:3000/user/delete-expense/${token}`
+        `http://localhost:3000/user/delete-expense/${id}`
       );
       console.log(response);
     } catch (error) {
