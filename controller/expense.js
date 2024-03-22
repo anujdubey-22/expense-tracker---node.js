@@ -130,7 +130,11 @@ exports.deleteExpense = async (req, res, next) => {
   try {
     const id = req.params.id;
     console.log(id);
+    const expense = await Expense.findByPk(id);
     const response = await Expense.destroy({ where: { id: id } });
+    const user = await User.findByPk(expense.userId);
+    user.totalAmount -=expense.expenseAmount;
+    await user.save();
     res.status(201).json({ response });
   } catch (error) {
     console.log(error, "error in deleting expense in app.js");

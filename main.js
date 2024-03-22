@@ -17,6 +17,7 @@ async function getData() {
     if (localStorage.getItem("buttonHidden") === "true") {
       document.getElementById("buyPremium").style.display = "none";
       document.getElementById("board").style.display = "block";
+      document.getElementById("report").style.display = "block";
         let pElement = document.getElementById("message");
      pElement.innerHTML = "You are a Premium User now";
     }
@@ -85,14 +86,17 @@ async function buyPremium() {
         localStorage.setItem("token", output.data.token);
         document.getElementById("buyPremium").style.display = "none";
         document.getElementById("board").style.display = "block";
+        document.getElementById("report").style.display = "block";
         document
           .getElementById("board")
           .addEventListener("click", showLeaderBoard());
         // Store hidden state in local storage
         localStorage.setItem("buttonHidden", "true");
         let pElement = document.getElementById("message");
-    pElement.innerHTML = "You are a Premium User now";
+        pElement.innerHTML = "You are a Premium User now";
+        
       },
+
     };
     const rzp1 = new Razorpay(options);
     rzp1.open();
@@ -267,4 +271,10 @@ async function expenseHandler(event) {
     description: description,
     category: category,
   };
+}
+
+async function showReport(){
+const reportEle = document.getElementById('reportList');
+reportEle.innerHTML = 'Report Generation';
+
 }
