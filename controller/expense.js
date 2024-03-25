@@ -1,3 +1,4 @@
+const AWS = require('aws-sdk');
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Expense = require("../models/expense");
@@ -5,6 +6,7 @@ const Order = require("../models/order");
 const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 const sequelize = require("../database");
+const Downloadedfiles = require('../models/downlodedfiles');
 
 const saltRounds = 10;
 
@@ -15,6 +17,40 @@ function isValid(string) {
     return true;
   }
 }
+
+function uploadtoS3(data,filename){
+  return new Promise((resolve,reject) =>{
+    const BUCKET_NAME = 'abc';
+    const IAM_USER_KEY = 'abc';
+    const IAM_USER_SECRET = 'abc';
+  
+    let s3bucket = new AWS.S3({
+      accessKeyId: IAM_USER_KEY,
+      secretAccessKey: IAM_USER_SECRET,
+    
+    })
+    
+    var params = {
+      Bucket: BUCKET_NAME,
+      Key: filename,
+      Body:  data,
+      ACL: 'public-read'
+    }
+    s3bucket.upload(params,(err,s3response) => {
+      if(err){
+        console.log(err,'Something went wrong in s3 createbucket');
+        reject('Something went wrong in s3 createbucket');
+      }
+      else{
+        console.log(s3response,'success in s3 createbucket');
+        console.log(s3response.Location,'urlllll');
+        resolve(s3response.Location);
+      }
+    })
+  })
+  
+}
+
 
 exports.postUser = async (req, res, next) => {
   try {
@@ -242,3 +278,43 @@ exports.postFailedTransaction = async (req, res, next) => {
     console.log(error, "error in poastFailedTransaction in controller");
   }
 };
+
+exports.getDownload = async(req,res,next) => {
+  try{
+    console.log(req.user,'req.userrrrrr in getDownload');
+    const userId = req.user.userId;
+    const expenses = await Expense.findAll({where:{userId:userId}});
+    //const expenses = await req.user.getExpense();
+    console.log(expenses,'expensessss in expense controllerrrrr ');
+    const stringified = JSON.stringify(expenses);
+    console.log(stringified);
+  
+    const filename = `Expense${userId}/${new Date()}.txt`;
+    const fileUrl = await uploadtoS3(stringified,filename);
+    console.log(fileUrl,'fileUrl in getDownloaddd')
+    const response = await Downloadedfiles.create({url:fileUrl,datedownloaded:new Date().toLocaleDateString});
+    res.status(201).json({fileUrl,success:true});
+  }
+  catch(error){
+    console.log(error,'error in getDownload');
+    res.status(500).json({success:false});
+  }
+}
+
+
+exports.getDownloadedFiles = async(req,res,next) =>{
+try{
+  const userId = req.user.userId;
+  const allFiles = await Downloadedfiles.findAll({where:{userId:userId}});
+  console.log(allFiles);
+  if(allFiles){
+    res.status(201).json({allFiles,success:true})
+  }
+  else{
+    throw new Error('error in getDownloadfiles');
+  }
+}
+catch(error){
+  console.log(error,'error in getDownloadedFiles');
+}
+}

@@ -2,36 +2,42 @@ const Forgotpassword = require("../models/forgotpassword");
 const User = require("../models/user");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const sgMail = require('@sendgrid/mail');
+const axios = require('axios');
 
 exports.postForgotpasswaord = async (req, res, next) => {
   try {
+    console.log('in postForgotpassword in frgotpassword controller')
     const { email } = req.body;
 
     const user = await User.findOne({ where: { email: email } });
     console.log(user, "user in forgotpassword");
     if (user) {
-      const id = uuidv4;
+      const id = uuidv4();
       const forgot = await Forgotpassword.create({
         id: id,
         userId: user.id,
         isactive: true,
       });
+      const data = await axios.post(`http://localhost:3000/password/resetpassword/${id}`);
+      //res.redirect('/password/resetpassword/${id}');
+      console.log(data,'data in forgotpassword controllerrr');
+      res.status(202).json({uuid:id,success:true});
+      // sgMail.setApiKey(process.env.SENGRID_API_KEY);
 
-      sgMail.setApiKey(process.env.SENGRID_API_KEY);
+      // const msg = {
+      //   to: email,
+      //   from: "abc@gmail.com",
+      //   subject: "Forgot password",
+      //   text: "forgot password link generated successfully click on thelink to reset password",
+      //   html: `<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`,
+      // };
 
-      const msg = {
-        to: email,
-        from: "abc@gmail.com",
-        subject: "Forgot password",
-        text: "forgot password link generated successfully click on th e;ink to reset password",
-        html: `<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`,
-      };
-
-      const response = await sgMail.send(msg);
-      res.status(response[0].statusCode).json({
-        message: "Link to reset your password sent to your mail ",
-        sucess: true,
-      });
+      // const response = await sgMail.send(msg);
+      // res.status(response[0].statusCode).json({
+      //   message: "Link to reset your password sent to your mail ",
+      //   sucess: true,
+      // });
     } else {
       throw new Error("User doesnt exist");
     }
@@ -42,7 +48,9 @@ exports.postForgotpasswaord = async (req, res, next) => {
 
 exports.postResetpassword = async (req, res, next) => {
   try {
+    console.log('in postRestpasswordddd',req.params)
     const id = req.params.id;
+    console.log(id,'iddddddddddd in postrestpassword')
     const forgotpasswordrequest = await Forgotpassword.findOne({
       where: { id: id },
     });
@@ -52,31 +60,21 @@ exports.postResetpassword = async (req, res, next) => {
     );
     if (forgotpasswordrequest.isactive) {
       forgotpasswordrequest.update({ isactive: false });
-      res.status(200).send(`<html>
-                                    <script>
-                                        function formsubmitted(e){
-                                            e.preventDefault();
-                                            console.log('called')
-                                        }
-                                    </script>
-                                    <form action="/password/updatepassword/${id}" method="post">
-                                        <label for="newpassword">Enter New password</label>
-                                        <input name="newpassword" type="password" required></input>
-                                        <button>reset password</button>
-                                    </form>
-                                </html>`);
+      res.status(200).send('ok')
     } else {
       throw new Error("forgotpasswordrequest expired doesnt exist");
     }
   } catch (error) {
-    connsole.log(error, "error in post resetpassword");
+    console.log(error, "error in post resetpassword");
   }
 };
 
 exports.postUpdatepassword = async (req, res, next) => {
   try {
-    const { newpassword } = req.query;
+    console.log('in postupdatepasswordddddd ')
+    const { newpassword } = req.body;
     const { resetpasswordid } = req.params;
+    console.log(req.body,req.params,'newpassword and resetpassworid')
     const resetpasswordrequest = await Forgotpassword.findOne({
       where: { id: resetpasswordid },
     });

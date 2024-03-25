@@ -33,8 +33,8 @@ async function getData() {
 document.addEventListener("DOMContentLoaded", getData);
 
 async function forgotPasswordHandler(){
-//console.log('click')
-window.location.href = './forgot.html'
+console.log('click in forgotpasswordhandler in main js')
+window.location.href ='./forgot.html'
 };
 
 async function showLeaderBoard() {
@@ -277,4 +277,46 @@ async function showReport(){
 const reportEle = document.getElementById('reportList');
 reportEle.innerHTML = 'Report Generation';
 
+};
+
+function download(){
+  console.log('download clicked')
+  const token = localStorage.getItem('token');
+  axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
+  .then((response) => {
+    console.log(response)
+      if(response.status === 201){
+          //the bcakend is essentially sending a download link
+          //  which if we open in browser, the file would download
+          var a = document.createElement("a");
+          a.href = response.data.fileUrl;
+          a.download = 'myexpense.csv';
+          a.click();
+      } else {
+          throw new Error(response.data.message)
+      }
+
+  })
+  .catch((err) => {
+      console.log(err,'error in download in main js')
+  });
+}
+
+
+async function showDownloadedFiles(){
+  try{
+    let token = localStorage.getItem('token')
+    console.log('show download files clicked');
+    const allfFiles = await axios.get('http://localhost:3000/user/downloadedfiles',{ headers: {"Authorization" : token} });
+    if(allfFiles){
+      let showDownloadedFilesInScreen = document.getElementById('downloadedfiles');
+      showDownloadedFilesInScreen.innerHTML = `All Downloaded Files Till Now`;
+      for(let files of allfFiles){
+        showDownloadedFilesInScreen.innerHTML +=`${files.datedownloaded}- ${files.url}`;
+      }
+    }
+  }
+  catch(error){
+    console.log(error,'error in showdownloadFiles');
+  }
 }

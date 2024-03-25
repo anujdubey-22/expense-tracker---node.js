@@ -20,5 +20,9 @@ router.post('/failedTransaction', verifyToken, controller.postFailedTransaction)
 
 router.delete('/delete-expense/:id',controller.deleteExpense);
 
+router.get('/download', verifyToken, controller.getDownload);
+
+router.get('/downloadedfiles', verifyToken, controller.getDownloadedFiles);
+
 
 module.exports = router;

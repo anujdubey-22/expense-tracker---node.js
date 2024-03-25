@@ -9,6 +9,7 @@ const Router = require('./routes/expense');
 const forgotrouter = require('./routes/forgotpassword');
 const premiumRoutes = require('./routes/premium');
 const sequelize = require('./database');
+const Downloadedfiles = require("./models/downlodedfiles");
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,9 @@ Order.belongsTo(User);
 
 User.hasMany(Forgotpassword);
 Forgotpassword.belongsTo(User);
+
+User.hasMany(Downloadedfiles);
+Downloadedfiles.belongsTo(User);
 
 async function sync() {
   try {
