@@ -1,3 +1,4 @@
+require('dotenv').config();
 const AWS = require("aws-sdk");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
@@ -20,9 +21,9 @@ function isValid(string) {
 
 function uploadtoS3(data, filename) {
   return new Promise((resolve, reject) => {
-    const BUCKET_NAME = "abc";
-    const IAM_USER_KEY = "abc";
-    const IAM_USER_SECRET = "abc";
+    const BUCKET_NAME = process.env.BUCKET_NAME;
+    const IAM_USER_KEY = process.env.IAM_USER_KEY;
+    const IAM_USER_SECRET = process.env.IAM_USER_KEY;
 
     let s3bucket = new AWS.S3({
       accessKeyId: IAM_USER_KEY,
@@ -201,8 +202,8 @@ exports.postPremium = async (req, res, next) => {
   try {
     const user = req.user;
     var rzp = new Razorpay({
-      key_id: "rzp_test_2nRLHGamGL8Jjk",
-      key_secret: "HQp1EwLeRDZ5ik6LV5fYg28G",
+      key_id: process.env.key_id,
+      key_secret: process.env.key_secret,
     });
 
     rzp.orders.create(

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -10,9 +11,18 @@ const forgotrouter = require('./routes/forgotpassword');
 const premiumRoutes = require('./routes/premium');
 const sequelize = require('./database');
 const Downloadedfiles = require("./models/downlodedfiles");
+const helmet = require('helmet');
+const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
+
+const accessLogstream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'});
 
 const app = express();
 app.use(cors());
+app.use(helmet());
+app.use(morgan('combined',{stream: accessLogstream}));
+
 app.use(bodyParser.json({ extended: true }));
 
 app.use("/user",Router);
@@ -36,7 +46,7 @@ async function sync() {
   try {
     const data = await sequelize.sync();
     //console.log(data);
-    app.listen(3000, () => {
+    app.listen(process.env.PORT || 3000 , () => {
       console.log("server started on Port 3000");
     });
   } catch (error) {
