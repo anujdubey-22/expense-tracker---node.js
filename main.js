@@ -1,9 +1,14 @@
-async function getData() {
+let page = 1;
+async function getData(page,limit) {
   try {
+    console.log(page, "pageeeeeeeeeeeeee");
     var token = localStorage.getItem("token");
-    const response = await axios.get("http://localhost:3000/user/get-expense", {
-      headers: { authorization: token },
-    });
+    const response = await axios.get(
+      `http://localhost:3000/user/get-expense?page=${page}&limit=${limit}`,
+      {
+        headers: { authorization: token },
+      }
+    );
     console.log(response);
 
     //let pElement = document.getElementById("message").querySelector("p");
@@ -18,42 +23,122 @@ async function getData() {
       document.getElementById("buyPremium").style.display = "none";
       document.getElementById("board").style.display = "block";
       document.getElementById("report").style.display = "block";
-        let pElement = document.getElementById("message");
-     pElement.innerHTML = "You are a Premium User now";
+      let pElement = document.getElementById("message");
+      pElement.innerHTML = "You are a Premium User now";
     }
-    for (let data of response.data.response) {
-      //console.log(data);
-      showExpense(data);
+    let totalPages = response.data.totalPages;
+    var list = document.getElementById("list");
+    list.innerHTML = "";
+    for (let expense of response.data.expenses) {
+      //console.log(expense);
+      showExpense(expense, page, totalPages);
     }
+    showPaginationButton(page, totalPages,limit);
   } catch (error) {
     console.log(error, "error in getting data in main.js");
   }
 }
 
-document.addEventListener("DOMContentLoaded", getData);
+async function showPaginationButton(currentPage, totalPages,limit) {
+  var list = document.getElementById("list");
+  // Display current page and total pages
+  const pageInfo = document.createElement("p");
+  pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+  list.appendChild(pageInfo);
 
-async function forgotPasswordHandler(){
-console.log('click in forgotpasswordhandler in main js')
-window.location.href ='./forgot.html'
-};
+  var label = document.createElement("label");
+  label.setAttribute("for", "rowsPerPage");
+  label.textContent = "Rows Per Page:";
+
+  var select = document.createElement("select");
+  select.setAttribute("id", "rowsPerPage");
+  select.setAttribute("name", "rowsPerPage");
+
+  var options = [1, 5, 10, 15, 20, 25];
+  options.forEach(function (optionValue) {
+    var option = document.createElement("option");
+    option.setAttribute("value", optionValue);
+    option.textContent = optionValue;
+    if (optionValue === limit) {
+      option.setAttribute("selected", "selected");
+    }
+    select.appendChild(option);
+  });
+
+  list.appendChild(label);
+  list.appendChild(select);
+
+  const limitDropdown = document.getElementById("rowsPerPage");
+  limitDropdown.addEventListener("change", function () {
+    limit = parseInt(limitDropdown.value);
+    // Reset current page to 1 when limit changes
+    currentPage = 1;
+    getData(currentPage, limit);
+  });
+
+  const prevPageBtn = document.createElement("button");
+  prevPageBtn.innerText = "Previous Page";
+  prevPageBtn.addEventListener("click", function () {
+    if (currentPage > 1) {
+      currentPage--;
+      getData(currentPage,limit);
+
+      // Update page info
+      document.querySelector(
+        "p"
+      ).innerText = `Page ${currentPage} of ${totalPages}`;
+    }
+  });
+  list.appendChild(prevPageBtn);
+
+  const nextPageBtn = document.createElement("button");
+  nextPageBtn.innerText = "Next Page";
+  nextPageBtn.addEventListener("click", function () {
+    if (currentPage < totalPages) {
+      currentPage++;
+      getData(currentPage,limit);
+
+      // Update page info
+      document.querySelector(
+        "p"
+      ).innerText = `Page ${currentPage} of ${totalPages}`;
+    }
+  });
+  list.appendChild(nextPageBtn);
+}
+
+document.addEventListener("DOMContentLoaded", getData(1));
+
+async function forgotPasswordHandler() {
+  console.log("click in forgotpasswordhandler in main js");
+  window.location.href = "./forgot.html";
+}
 
 async function showLeaderBoard() {
   console.log("show Leader btn clicked");
-  const token = localStorage.getItem('token');
-  const userArr = await axios.get('http://localhost:3000/premium/showLeaderBoard',{headers:{authorization: token}});
+  const token = localStorage.getItem("token");
+  const userArr = await axios.get(
+    "http://localhost:3000/premium/showLeaderBoard",
+    { headers: { authorization: token } }
+  );
   console.log(userArr);
-  const leaderEle = document.getElementById('leaderboard');
-  leaderEle.innerHTML= `<h1>Leader Board</h1>`
-  for(let item of userArr.data.data){
+  const leaderEle = document.getElementById("leaderboard");
+  leaderEle.innerHTML = `<h1>Leader Board</h1>`;
+  for (let item of userArr.data.data) {
     //console.log(item.name,item.expenseAmount)
     //console.log(`Name - ${item.name} Total Expense - ${item.expenseAmount}`)
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode( `Name - ${item.name} Total Expense - ${item.totalAmount!=null?item.totalAmount:0}` ))
+    const div = document.createElement("div");
+    div.appendChild(
+      document.createTextNode(
+        `Name - ${item.name} Total Expense - ${
+          item.totalAmount != null ? item.totalAmount : 0
+        }`
+      )
+    );
+    div.style.color='green';
     //leaderEle.innerHTML += `Name - ${item} Total Expense - ${userArr.data.data[item]}`;
-    leaderEle.appendChild(div)
-
+    leaderEle.appendChild(div);
   }
-  
 }
 async function buyPremium() {
   try {
@@ -94,9 +179,7 @@ async function buyPremium() {
         localStorage.setItem("buttonHidden", "true");
         let pElement = document.getElementById("message");
         pElement.innerHTML = "You are a Premium User now";
-        
       },
-
     };
     const rzp1 = new Razorpay(options);
     rzp1.open();
@@ -119,9 +202,10 @@ async function buyPremium() {
   }
 }
 
-function showExpense(expenseData) {
+function showExpense(expenseData, currentPage, totalPages) {
   const { expenseAmount, description, category, id } = expenseData;
   var list = document.getElementById("list");
+  //list.innerHTML=''
 
   var li = document.createElement("li");
   var btn = document.createElement("button");
@@ -138,6 +222,22 @@ function showExpense(expenseData) {
   //li.appendChild(edit);
   list.appendChild(li);
   //console.log(li);
+
+  // Styling for the li element
+  li.style.fontSize = "16px";
+  //li.style.display = "flex";
+  //li.style.alignContent= "center";
+  li.style.color = "blue";
+  //li.style.backgroundColor = "lightgray";
+
+  // Styling for the button element
+  btn.style.padding = "5px 10px";
+  btn.style.margin = "5px";
+  btn.style.border = "1px solid black";
+  btn.style.borderRadius = "15px";
+  btn.style.backgroundColor = "white";
+  btn.style.color = "red";
+  btn.style.cursor = "pointer";
 
   // var objString=JSON.stringify(obj);
 
@@ -249,7 +349,7 @@ async function expenseHandler(event) {
   var token = localStorage.getItem("token");
   console.log(amount, description, category);
   console.log(token);
-  
+
   axios
     .post("http://localhost:3000/user/post-expense", {
       amount: amount,
@@ -259,10 +359,11 @@ async function expenseHandler(event) {
     })
     .then((result) => {
       console.log(result, "result in axios post in main.js");
-      const newToken = result.data.token
-      console.log(newToken,'newtokennnnnnn');
-      localStorage.setItem('token',newToken);
-      showExpense(result.data.newExpenseDetail);
+      const newToken = result.data.token;
+      console.log(newToken, "newtokennnnnnn");
+      localStorage.setItem("token", newToken);
+      //showExpense(result.data.newExpenseDetail);
+      getData(1);
     })
     .catch((error) => console.log(error, "error in axios post in main.js"));
 
@@ -273,50 +374,53 @@ async function expenseHandler(event) {
   };
 }
 
-async function showReport(){
-const reportEle = document.getElementById('reportList');
-reportEle.innerHTML = 'Report Generation';
-
-};
-
-function download(){
-  console.log('download clicked')
-  const token = localStorage.getItem('token');
-  axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
-  .then((response) => {
-    console.log(response)
-      if(response.status === 201){
-          //the bcakend is essentially sending a download link
-          //  which if we open in browser, the file would download
-          var a = document.createElement("a");
-          a.href = response.data.fileUrl;
-          a.download = 'myexpense.csv';
-          a.click();
-      } else {
-          throw new Error(response.data.message)
-      }
-
-  })
-  .catch((err) => {
-      console.log(err,'error in download in main js')
-  });
+async function showReport() {
+  const reportEle = document.getElementById("reportList");
+  reportEle.innerHTML = "Report Generation";
 }
 
+function download() {
+  console.log("download clicked");
+  const token = localStorage.getItem("token");
+  axios
+    .get("http://localhost:3000/user/download", {
+      headers: { Authorization: token },
+    })
+    .then((response) => {
+      console.log(response);
+      if (response.status === 201) {
+        //the bcakend is essentially sending a download link
+        //  which if we open in browser, the file would download
+        var a = document.createElement("a");
+        a.href = response.data.fileUrl;
+        a.download = "myexpense.csv";
+        a.click();
+      } else {
+        throw new Error(response.data.message);
+      }
+    })
+    .catch((err) => {
+      console.log(err, "error in download in main js");
+    });
+}
 
-async function showDownloadedFiles(){
-  try{
-    let token = localStorage.getItem('token')
-    console.log('show download files clicked');
-    const allfFiles = await axios.get('http://localhost:3000/user/downloadedfiles',{ headers: {"Authorization" : token} });
-    if(allfFiles){
-      let showDownloadedFilesInScreen = document.getElementById('downloadedfiles');
+async function showDownloadedFiles() {
+  try {
+    let token = localStorage.getItem("token");
+    console.log("show download files clicked");
+    const allfFiles = await axios.get(
+      "http://localhost:3000/user/downloadedfiles",
+      { headers: { Authorization: token } }
+    );
+    if (allfFiles) {
+      let showDownloadedFilesInScreen =
+        document.getElementById("downloadedfiles");
       showDownloadedFilesInScreen.innerHTML = `All Downloaded Files Till Now`;
-      for(let files of allfFiles){
-        showDownloadedFilesInScreen.innerHTML +=`${files.datedownloaded}- ${files.url}`;
+      for (let files of allfFiles) {
+        showDownloadedFilesInScreen.innerHTML += `${files.datedownloaded}- ${files.url}`;
       }
     }
-  }
-  catch(error){
-    console.log(error,'error in showdownloadFiles');
+  } catch (error) {
+    console.log(error, "error in showdownloadFiles");
   }
 }

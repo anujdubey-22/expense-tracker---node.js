@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 const Expense = require("../models/expense");
@@ -6,7 +6,7 @@ const Order = require("../models/order");
 const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 const sequelize = require("../database");
-const Downloadedfiles = require('../models/downlodedfiles');
+const Downloadedfiles = require("../models/downlodedfiles");
 
 const saltRounds = 10;
 
@@ -18,39 +18,35 @@ function isValid(string) {
   }
 }
 
-function uploadtoS3(data,filename){
-  return new Promise((resolve,reject) =>{
-    const BUCKET_NAME = 'abc';
-    const IAM_USER_KEY = 'abc';
-    const IAM_USER_SECRET = 'abc';
-  
+function uploadtoS3(data, filename) {
+  return new Promise((resolve, reject) => {
+    const BUCKET_NAME = "abc";
+    const IAM_USER_KEY = "abc";
+    const IAM_USER_SECRET = "abc";
+
     let s3bucket = new AWS.S3({
       accessKeyId: IAM_USER_KEY,
       secretAccessKey: IAM_USER_SECRET,
-    
-    })
-    
+    });
+
     var params = {
       Bucket: BUCKET_NAME,
       Key: filename,
-      Body:  data,
-      ACL: 'public-read'
-    }
-    s3bucket.upload(params,(err,s3response) => {
-      if(err){
-        console.log(err,'Something went wrong in s3 createbucket');
-        reject('Something went wrong in s3 createbucket');
-      }
-      else{
-        console.log(s3response,'success in s3 createbucket');
-        console.log(s3response.Location,'urlllll');
+      Body: data,
+      ACL: "public-read",
+    };
+    s3bucket.upload(params, (err, s3response) => {
+      if (err) {
+        console.log(err, "Something went wrong in s3 createbucket");
+        reject("Something went wrong in s3 createbucket");
+      } else {
+        console.log(s3response, "success in s3 createbucket");
+        console.log(s3response.Location, "urlllll");
         resolve(s3response.Location);
       }
-    })
-  })
-  
+    });
+  });
 }
-
 
 exports.postUser = async (req, res, next) => {
   try {
@@ -80,9 +76,12 @@ exports.postUser = async (req, res, next) => {
     res.status(404).send("Duplicate Email Found");
   }
 };
-function generateToken(id, isPremium,expenseId) {
+function generateToken(id, isPremium, expenseId) {
   console.log(id, "id in generateToken");
-  var token = jwt.sign({ userId: id, isPremium, expenseId:expenseId }, "shhhhh fir koi hai");
+  var token = jwt.sign(
+    { userId: id, isPremium, expenseId: expenseId },
+    "shhhhh fir koi hai"
+  );
   return token;
 }
 exports.postValidate = async (req, res, next) => {
@@ -126,25 +125,32 @@ exports.postExpense = async (req, res, next) => {
       const user = jwt.verify(token, "shhhhh fir koi hai");
       console.log(user, "user, hihihihhi");
       //console.log(amount,description, category);
-      const data = await Expense.create(
-        {
-          userId: user.userId,
-          expenseAmount: amount,
-          description: description,
-          category: category,
-        }
-      );
-      console.log(data,'data after creating expense table in app.js');
+      const data = await Expense.create({
+        userId: user.userId,
+        expenseAmount: amount,
+        description: description,
+        category: category,
+      });
+      console.log(data, "data after creating expense table in app.js");
       // Update the total amount in the User record
       const userFound = await User.findByPk(user.userId);
       userFound.totalAmount += parseInt(amount);
       await userFound.save();
-      
-      newToken = generateToken(user.userId,userFound.isPremium,data.dataValues.id);
-      console.log(data.dataValues.id,'iddddddddddddddddd',newToken,'newtokennnnnnnnnnnnnnn')
-      
-      res.status(201).json({ newExpenseDetail: data,token:newToken });
-    })
+
+      newToken = generateToken(
+        user.userId,
+        userFound.isPremium,
+        data.dataValues.id
+      );
+      console.log(
+        data.dataValues.id,
+        "iddddddddddddddddd",
+        newToken,
+        "newtokennnnnnnnnnnnnnn"
+      );
+
+      res.status(201).json({ newExpenseDetail: data, token: newToken });
+    });
   } catch (err) {
     console.log(err, "error in creating Expense");
   }
@@ -154,9 +160,23 @@ exports.getExpense = async (req, res, next) => {
   try {
     const user = req.user;
     console.log(user, "user");
-    const data = await Expense.findAll({ where: { userId: user.userId } });
-    //console.log(data,'data in finding All in app.js');
-    res.status(201).json({ response: data });
+    console.log(req.query,'req.queryyyyyyy')
+    const page = parseInt(req.query.page || 1);
+    console.log(page,'pageeeeeeeeee')
+    const limit = parseInt(req.query.limit) || 3;
+    console.log(typeof(limit),'limittttttttttttt')
+    const offset = (page - 1) * limit;
+    const { rows, count } = await Expense.findAndCountAll({
+      where: {
+        userId: user.userId
+      },
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']]
+    });
+    //console.log(rows,count,'data in finding All in app.js');
+    res.status(201).json({ expenses: rows,
+      totalPages: Math.ceil(count / limit) });
   } catch (error) {
     console.log(error, "error in creating in app.js");
   }
@@ -169,7 +189,7 @@ exports.deleteExpense = async (req, res, next) => {
     const expense = await Expense.findByPk(id);
     const response = await Expense.destroy({ where: { id: id } });
     const user = await User.findByPk(expense.userId);
-    user.totalAmount -=expense.expenseAmount;
+    user.totalAmount -= expense.expenseAmount;
     await user.save();
     res.status(201).json({ response });
   } catch (error) {
@@ -244,13 +264,11 @@ exports.postUpdatetransactions = async (req, res, next) => {
     // Concurrently await all promises using Promise.all
     await Promise.all([orderUpdate, response]);
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Transaction successfull",
-        token: token,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Transaction successfull",
+      token: token,
+    });
   } catch (error) {
     console.log(error, "error in post updatetransaction in controller.js");
   }
@@ -279,42 +297,43 @@ exports.postFailedTransaction = async (req, res, next) => {
   }
 };
 
-exports.getDownload = async(req,res,next) => {
-  try{
-    console.log(req.user,'req.userrrrrr in getDownload');
+exports.getDownload = async (req, res, next) => {
+  try {
+    console.log(req.user, "req.userrrrrr in getDownload");
     const userId = req.user.userId;
-    const expenses = await Expense.findAll({where:{userId:userId}});
+    const expenses = await Expense.findAll({ where: { userId: userId } });
     //const expenses = await req.user.getExpense();
-    console.log(expenses,'expensessss in expense controllerrrrr ');
+    console.log(expenses, "expensessss in expense controllerrrrr ");
     const stringified = JSON.stringify(expenses);
     console.log(stringified);
-  
+
     const filename = `Expense${userId}/${new Date()}.txt`;
-    const fileUrl = await uploadtoS3(stringified,filename);
-    console.log(fileUrl,'fileUrl in getDownloaddd')
-    const response = await Downloadedfiles.create({url:fileUrl,datedownloaded:new Date().toLocaleDateString});
-    res.status(201).json({fileUrl,success:true});
+    const fileUrl = await uploadtoS3(stringified, filename);
+    console.log(fileUrl, "fileUrl in getDownloaddd");
+    const response = await Downloadedfiles.create({
+      url: fileUrl,
+      datedownloaded: new Date().toLocaleDateString,
+    });
+    res.status(201).json({ fileUrl, success: true });
+  } catch (error) {
+    console.log(error, "error in getDownload");
+    res.status(500).json({ success: false });
   }
-  catch(error){
-    console.log(error,'error in getDownload');
-    res.status(500).json({success:false});
-  }
-}
+};
 
-
-exports.getDownloadedFiles = async(req,res,next) =>{
-try{
-  const userId = req.user.userId;
-  const allFiles = await Downloadedfiles.findAll({where:{userId:userId}});
-  console.log(allFiles);
-  if(allFiles){
-    res.status(201).json({allFiles,success:true})
+exports.getDownloadedFiles = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const allFiles = await Downloadedfiles.findAll({
+      where: { userId: userId },
+    });
+    console.log(allFiles);
+    if (allFiles) {
+      res.status(201).json({ allFiles, success: true });
+    } else {
+      throw new Error("error in getDownloadfiles");
+    }
+  } catch (error) {
+    console.log(error, "error in getDownloadedFiles");
   }
-  else{
-    throw new Error('error in getDownloadfiles');
-  }
-}
-catch(error){
-  console.log(error,'error in getDownloadedFiles');
-}
-}
+};
