@@ -1,7 +1,7 @@
 let page = 1;
 async function getData(page,limit) {
   try {
-    console.log(page, "pageeeeeeeeeeeeee");
+    //console.log(page, "pageeeeeeeeeeeeee");
     var token = localStorage.getItem("token");
     const response = await axios.get(
       `http://localhost:3000/user/get-expense?page=${page}&limit=${limit}`,
@@ -9,7 +9,7 @@ async function getData(page,limit) {
         headers: { authorization: token },
       }
     );
-    console.log(response);
+    //console.log(response);
 
     //let pElement = document.getElementById("message").querySelector("p");
     //let pElement = document.createElement("p");
@@ -110,18 +110,18 @@ async function showPaginationButton(currentPage, totalPages,limit) {
 document.addEventListener("DOMContentLoaded", getData(1));
 
 async function forgotPasswordHandler() {
-  console.log("click in forgotpasswordhandler in main js");
+  //console.log("click in forgotpasswordhandler in main js");
   window.location.href = "./forgot.html";
 }
 
 async function showLeaderBoard() {
-  console.log("show Leader btn clicked");
+  //console.log("show Leader btn clicked");
   const token = localStorage.getItem("token");
   const userArr = await axios.get(
     "http://localhost:3000/premium/showLeaderBoard",
     { headers: { authorization: token } }
   );
-  console.log(userArr);
+  //console.log(userArr);
   const leaderEle = document.getElementById("leaderboard");
   leaderEle.innerHTML = `<h1>Leader Board</h1>`;
   for (let item of userArr.data.data) {
@@ -142,17 +142,17 @@ async function showLeaderBoard() {
 }
 async function buyPremium() {
   try {
-    console.log("btn clicked");
+    //console.log("btn clicked");
     obj = {};
     const token = localStorage.getItem("token");
-    console.log(token, "token to send in post premium in main.js");
+    //console.log(token, "token to send in post premium in main.js");
     const response = await axios.post(
       "http://localhost:3000/user/premium",
       obj,
       { headers: { authorization: token } }
     );
-    console.log(response);
-    console.log(response.razorpay_payment_id, "paymentId");
+    //console.log(response);
+    //console.log(response.razorpay_payment_id, "paymentId");
 
     var options = {
       key: response.data.key_id,
@@ -166,7 +166,7 @@ async function buyPremium() {
           },
           { headers: { authorization: token } }
         );
-        console.log(output);
+        //console.log(output);
         alert("you are premium user now");
         localStorage.setItem("token", output.data.token);
         document.getElementById("buyPremium").style.display = "none";
@@ -186,7 +186,7 @@ async function buyPremium() {
     //e.preventDefault();
 
     rzp1.on("payment.failed", async function (response) {
-      console.log(response, "response in buyPremium in main.js");
+      //console.log(response, "response in buyPremium in main.js");
       const failed = await axios.post(
         "http://localhost:3000/user/failedTransaction",
         {
@@ -247,7 +247,7 @@ function showExpense(expenseData, currentPage, totalPages) {
 
   async function clicked(e) {
     try {
-      console.log("hi", e.target, id);
+      //console.log("hi", e.target, id);
       var li = e.target.parentElement;
       list.removeChild(li);
 
@@ -256,7 +256,7 @@ function showExpense(expenseData, currentPage, totalPages) {
       const response = await axios.delete(
         `http://localhost:3000/user/delete-expense/${id}`
       );
-      console.log(response);
+      //console.log(response);
     } catch (error) {
       console.log(error, "error in deleting expense");
     }
@@ -299,9 +299,9 @@ async function handleSubmit(event) {
       email: email,
       password: password,
     });
-    console.log(data);
+    //console.log(data);
     if (data.status === 201) {
-      console.log(201);
+      //console.log(201);
       window.location.href = "./login.html";
     }
   } catch (error) {
@@ -324,9 +324,9 @@ async function validLogin(event) {
       password: password,
     };
     const data = await axios.post("http://localhost:3000/user/validate", obj);
-    console.log(data);
+    //console.log(data);
     if (data.status === 201) {
-      console.log(data.data);
+      //console.log(data.data);
       localStorage.setItem("token", data.data.token);
       alert("User Login Success");
       window.location.href = "./expense.html";
@@ -347,8 +347,8 @@ async function expenseHandler(event) {
   var description = document.getElementById("Description").value;
   var category = document.getElementById("Category").value;
   var token = localStorage.getItem("token");
-  console.log(amount, description, category);
-  console.log(token);
+  //console.log(amount, description, category);
+  //console.log(token);
 
   axios
     .post("http://localhost:3000/user/post-expense", {
@@ -358,9 +358,9 @@ async function expenseHandler(event) {
       token: token,
     })
     .then((result) => {
-      console.log(result, "result in axios post in main.js");
+      //console.log(result, "result in axios post in main.js");
       const newToken = result.data.token;
-      console.log(newToken, "newtokennnnnnn");
+      //console.log(newToken, "newtokennnnnnn");
       localStorage.setItem("token", newToken);
       //showExpense(result.data.newExpenseDetail);
       getData(1);
@@ -380,14 +380,14 @@ async function showReport() {
 }
 
 function download() {
-  console.log("download clicked");
+  //console.log("download clicked");
   const token = localStorage.getItem("token");
   axios
     .get("http://localhost:3000/user/download", {
       headers: { Authorization: token },
     })
     .then((response) => {
-      console.log(response);
+      //console.log(response);
       if (response.status === 201) {
         //the bcakend is essentially sending a download link
         //  which if we open in browser, the file would download
@@ -407,18 +407,22 @@ function download() {
 async function showDownloadedFiles() {
   try {
     let token = localStorage.getItem("token");
-    console.log("show download files clicked");
+    //console.log("show download files clicked");
     const allfFiles = await axios.get(
       "http://localhost:3000/user/downloadedfiles",
       { headers: { Authorization: token } }
     );
+    //console.log(allfFiles.data["allFiles"],'allfiles')
     if (allfFiles) {
-      let showDownloadedFilesInScreen =
-        document.getElementById("downloadedfiles");
-      showDownloadedFilesInScreen.innerHTML = `All Downloaded Files Till Now`;
-      for (let files of allfFiles) {
-        showDownloadedFilesInScreen.innerHTML += `${files.datedownloaded}- ${files.url}`;
+      let showDownload = document.getElementById('showDownload');
+      let showDownloadedFilesInScreen = document.createElement("ul");
+      showDownloadedFilesInScreen.innerHTML = `<h2>All Downloaded Files Till Now</h2>`;
+      for (let files of allfFiles.data["allFiles"]) {
+        let li = document.createElement("li");
+        li.innerText = `${files.datedownloaded} - ${files.url}`;
+        showDownloadedFilesInScreen.appendChild(li);
       }
+      showDownload.appendChild(showDownloadedFilesInScreen);
     }
   } catch (error) {
     console.log(error, "error in showdownloadFiles");

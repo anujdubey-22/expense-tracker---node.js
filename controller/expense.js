@@ -21,9 +21,10 @@ function isValid(string) {
 
 function uploadtoS3(data, filename) {
   return new Promise((resolve, reject) => {
+    //console.log(process.env.IAM_USER_KEY,' process.env.IAM_USER_KEYyyyyy');
     const BUCKET_NAME = process.env.BUCKET_NAME;
     const IAM_USER_KEY = process.env.IAM_USER_KEY;
-    const IAM_USER_SECRET = process.env.IAM_USER_KEY;
+    const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 
     let s3bucket = new AWS.S3({
       accessKeyId: IAM_USER_KEY,
@@ -311,9 +312,11 @@ exports.getDownload = async (req, res, next) => {
     const filename = `Expense${userId}/${new Date()}.txt`;
     const fileUrl = await uploadtoS3(stringified, filename);
     console.log(fileUrl, "fileUrl in getDownloaddd");
+    //console.log(new Date().toLocaleDateString())
     const response = await Downloadedfiles.create({
+      userId:userId,
       url: fileUrl,
-      datedownloaded: new Date().toLocaleDateString,
+      datedownloaded: new Date().toLocaleDateString(),
     });
     res.status(201).json({ fileUrl, success: true });
   } catch (error) {
@@ -325,11 +328,12 @@ exports.getDownload = async (req, res, next) => {
 exports.getDownloadedFiles = async (req, res, next) => {
   try {
     const userId = req.user.userId;
+    console.log(userId,'userIddd in getDownloadedFiles');
     const allFiles = await Downloadedfiles.findAll({
       where: { userId: userId },
     });
-    console.log(allFiles);
-    if (allFiles) {
+    console.log(allFiles,'all files in getdownloaded files');
+    if (allFiles.length>0) {
       res.status(201).json({ allFiles, success: true });
     } else {
       throw new Error("error in getDownloadfiles");

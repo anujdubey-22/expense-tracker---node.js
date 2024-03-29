@@ -44,7 +44,7 @@ Downloadedfiles.belongsTo(User);
 
 async function sync() {
   try {
-    const data = await sequelize.sync();
+    const data = await sequelize.sync({});
     //console.log(data);
     app.listen(process.env.PORT || 3000 , () => {
       console.log("server started on Port 3000");
