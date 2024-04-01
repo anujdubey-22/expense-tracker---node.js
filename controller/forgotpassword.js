@@ -19,7 +19,7 @@ exports.postForgotpasswaord = async (req, res, next) => {
         userId: user.id,
         isactive: true,
       });
-      const data = await axios.post(`http://localhost:3000/password/resetpassword/${id}`);
+      const data = await axios.post(`http://52.66.206.117:3000/password/resetpassword/${id}`);
       //res.redirect('/password/resetpassword/${id}');
       console.log(data,'data in forgotpassword controllerrr');
       res.status(202).json({uuid:id,success:true});
@@ -30,7 +30,7 @@ exports.postForgotpasswaord = async (req, res, next) => {
       //   from: "abc@gmail.com",
       //   subject: "Forgot password",
       //   text: "forgot password link generated successfully click on thelink to reset password",
-      //   html: `<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`,
+      //   html: `<a href="http://52.66.206.117:3000/password/resetpassword/${id}">Reset password</a>`,
       // };
 
       // const response = await sgMail.send(msg);

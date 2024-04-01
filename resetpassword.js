@@ -4,7 +4,7 @@ async function resetpasswordfile(event){
     const uuid = localStorage.getItem('uuid');
     const password = document.getElementById('resetpassword').value;
     console.log(uuid,password)
-    const data = await axios.post(`http://localhost:3000/password/updatepassword/${uuid}`,
+    const data = await axios.post(`http://52.66.206.117:3000/password/updatepassword/${uuid}`,
     {
         newpassword:password
     });

@@ -29,6 +29,11 @@ app.use("/user",Router);
 app.use("/premium",premiumRoutes);
 app.use('/password',forgotrouter);
 
+app.use((req,res) => {
+  console.log(req.url,'urlll');
+  //console.log(path.join(__dirname,`/${req.url}`),'pathhhhh')
+  res.sendFile(path.join(__dirname,`${req.url}`))
+})
 
 User.hasMany(Expense);
 Expense.belongsTo(User);

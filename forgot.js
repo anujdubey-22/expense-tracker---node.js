@@ -4,7 +4,7 @@ async function handleForgot(e){
         console.log('forgot password pressed');
         const email = document.getElementById('email').value;
     
-        const data = await axios.post('http://localhost:3000/password/forgotpassword',{
+        const data = await axios.post('http://52.66.206.117:3000/password/forgotpassword',{
             email:email
         });
         console.log(data);
