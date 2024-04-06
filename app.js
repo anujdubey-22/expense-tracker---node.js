@@ -25,15 +25,18 @@ app.use(morgan('combined',{stream: accessLogstream}));
 
 app.use(bodyParser.json({ extended: true }));
 
+// Serve static files from the 'public' directory
+// app.use(express.static(path.join(__dirname, 'public')));
+
 app.use("/user",Router);
 app.use("/premium",premiumRoutes);
 app.use('/password',forgotrouter);
 
-app.use((req,res) => {
-  console.log(req.url,'urlll');
-  //console.log(path.join(__dirname,`/${req.url}`),'pathhhhh')
-  res.sendFile(path.join(__dirname,`${req.url}`))
-})
+// app.use((req,res) => {
+//   console.log(req.url,'urlll');
+//   //console.log(path.join(__dirname,`/${req.url}`),'pathhhhh')
+//   res.sendFile(path.join(__dirname,`${req.url}`))
+// })
 
 User.hasMany(Expense);
 Expense.belongsTo(User);
@@ -49,7 +52,7 @@ Downloadedfiles.belongsTo(User);
 
 async function sync() {
   try {
-    const data = await sequelize.sync({});
+    const data = await sequelize.sync();
     //console.log(data);
     app.listen(process.env.PORT || 3000 , () => {
       console.log("server started on Port 3000");

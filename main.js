@@ -1,4 +1,12 @@
 let page = 1;
+
+document.getElementById('board').addEventListener('click',showLeaderBoard());
+document.getElementById('buyPremium').addEventListener('click',buyPremium());
+document.getElementById('report').addEventListener('click',showReport());
+document.getElementById('downloadexpense').addEventListener('click',download());
+document.getElementById('downloadedfiles').addEventListener('click',showDownloadedFiles());
+
+
 async function getData(page,limit) {
   try {
     //console.log(page, "pageeeeeeeeeeeeee");
@@ -110,10 +118,11 @@ async function showPaginationButton(currentPage, totalPages,limit) {
 document.addEventListener("DOMContentLoaded", getData(1));
 
 async function forgotPasswordHandler() {
-  //console.log("click in forgotpasswordhandler in main js");
+  console.log("click in forgotpasswordhandler in main js");
   window.location.href = "./forgot.html";
 }
 
+document.getElementById('forget').addEventListener('click',forgotPasswordHandler());
 async function showLeaderBoard() {
   //console.log("show Leader btn clicked");
   const token = localStorage.getItem("token");
