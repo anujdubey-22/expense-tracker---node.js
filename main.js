@@ -12,7 +12,7 @@ async function getData(page,limit) {
     //console.log(page, "pageeeeeeeeeeeeee");
     var token = localStorage.getItem("token");
     const response = await axios.get(
-      `http://52.66.206.117:3000/user/get-expense?page=${page}&limit=${limit}`,
+      `http://65.1.109.205:3000/user/get-expense?page=${page}&limit=${limit}`,
       {
         headers: { authorization: token },
       }
@@ -127,7 +127,7 @@ async function showLeaderBoard() {
   //console.log("show Leader btn clicked");
   const token = localStorage.getItem("token");
   const userArr = await axios.get(
-    "http://52.66.206.117:3000/premium/showLeaderBoard",
+    "http://65.1.109.205:3000/premium/showLeaderBoard",
     { headers: { authorization: token } }
   );
   //console.log(userArr);
@@ -156,7 +156,7 @@ async function buyPremium() {
     const token = localStorage.getItem("token");
     //console.log(token, "token to send in post premium in main.js");
     const response = await axios.post(
-      "http://52.66.206.117:3000/user/premium",
+      "http://65.1.109.205:3000/user/premium",
       obj,
       { headers: { authorization: token } }
     );
@@ -168,7 +168,7 @@ async function buyPremium() {
       order_id: response.data.order.id,
       handler: async function (response) {
         const output = await axios.post(
-          "http://52.66.206.117:3000/user/updatetransactions",
+          "http://65.1.109.205:3000/user/updatetransactions",
           {
             order_id: options.order_id,
             payment_id: response.razorpay_payment_id,
@@ -197,7 +197,7 @@ async function buyPremium() {
     rzp1.on("payment.failed", async function (response) {
       //console.log(response, "response in buyPremium in main.js");
       const failed = await axios.post(
-        "http://52.66.206.117:3000/user/failedTransaction",
+        "http://65.1.109.205:3000/user/failedTransaction",
         {
           order_id: response.error.metadata.order_id,
           payment_id: response.error.metadata.payment_id,
@@ -263,7 +263,7 @@ function showExpense(expenseData, currentPage, totalPages) {
       //localStorage.removeItem(obj.description);
 
       const response = await axios.delete(
-        `http://52.66.206.117:3000/user/delete-expense/${id}`
+        `http://65.1.109.205:3000/user/delete-expense/${id}`
       );
       //console.log(response);
     } catch (error) {
@@ -286,7 +286,7 @@ function showExpense(expenseData, currentPage, totalPages) {
 
   //             //localStorage.removeItem(obj.description);
 
-  //             const response = await axios.delete(`http://52.66.206.117:3000/expense/delete-expense/${id}`);
+  //             const response = await axios.delete(`http://65.1.109.205:3000/expense/delete-expense/${id}`);
   //             console.log(response);
   //             }
   //             catch (error){
@@ -303,7 +303,7 @@ async function handleSubmit(event) {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const data = await axios.post("http://52.66.206.117:3000/user/signup", {
+    const data = await axios.post("http://65.1.109.205:3000/user/signup", {
       name: name,
       email: email,
       password: password,
@@ -332,7 +332,7 @@ async function validLogin(event) {
       email: email,
       password: password,
     };
-    const data = await axios.post("http://52.66.206.117:3000/user/validate", obj);
+    const data = await axios.post("http://65.1.109.205:3000/user/validate", obj);
     //console.log(data);
     if (data.status === 201) {
       //console.log(data.data);
@@ -360,7 +360,7 @@ async function expenseHandler(event) {
   //console.log(token);
 
   axios
-    .post("http://52.66.206.117:3000/user/post-expense", {
+    .post("http://65.1.109.205:3000/user/post-expense", {
       amount: amount,
       description: description,
       category: category,
@@ -392,7 +392,7 @@ function download() {
   //console.log("download clicked");
   const token = localStorage.getItem("token");
   axios
-    .get("http://52.66.206.117:3000/user/download", {
+    .get("http://65.1.109.205:3000/user/download", {
       headers: { Authorization: token },
     })
     .then((response) => {
@@ -418,7 +418,7 @@ async function showDownloadedFiles() {
     let token = localStorage.getItem("token");
     //console.log("show download files clicked");
     const allfFiles = await axios.get(
-      "http://52.66.206.117:3000/user/downloadedfiles",
+      "http://65.1.109.205:3000/user/downloadedfiles",
       { headers: { Authorization: token } }
     );
     //console.log(allfFiles.data["allFiles"],'allfiles')
